@@ -1,0 +1,320 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Global safety net: deny all by default
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() >= 1 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isValidTimestamp(ts) {
+      return ts is timestamp && ts <= request.time;
+    }
+
+    function isValidStr(val, minLen, maxLen) {
+      return val is string && val.size() >= minLen && val.size() <= maxLen;
+    }
+
+    function isValidPlatform(p) {
+      return p in ['TIKTOK', 'YOUTUBE_SHORTS', 'INSTAGRAM_REELS', 'X', 'LINKEDIN'];
+    }
+
+    function isValidAspectRatio(ar) {
+      return ar in ['9:16', '16:9', '1:1', '4:5'];
+    }
+
+    function isValidUserProfile(data) {
+      return isValidStr(data.userId, 1, 128) &&
+             isValidStr(data.displayName, 1, 60) &&
+             isValidPlatform(data.defaultPlatform) &&
+             data.autoSubtitlesEnabled is bool &&
+             (!('superAiActive' in data) || data.superAiActive is bool) &&
+             (!('superAiNiche' in data) || isValidStr(data.superAiNiche, 0, 80)) &&
+             (!('superAiChannel' in data) || isValidStr(data.superAiChannel, 0, 80)) &&
+             (!('superAiAutoPostNow' in data) || data.superAiAutoPostNow is bool) &&
+             (!('superAiPostingTimes' in data) || (data.superAiPostingTimes is list && data.superAiPostingTimes.size() <= 16 && (data.superAiPostingTimes.size() == 0 || data.superAiPostingTimes[0] is string))) &&
+             (!('autoDelete24hEnabled' in data) || data.autoDelete24hEnabled is bool);
+    }
+
+    function isValidMediaItem(data) {
+      return isValidStr(data.userId, 1, 128) &&
+             isValidStr(data.title, 1, 160) &&
+             data.sourceType in ['YOUTUBE', 'UPLOADED', 'CLIP'] &&
+             isValidStr(data.sourceUrl, 0, 500) &&
+             isValidStr(data.youtubeVideoId, 0, 32) &&
+             isValidStr(data.thumbnailUrl, 0, 500) &&
+             data.durationSeconds is int && data.durationSeconds >= 0 && data.durationSeconds <= 86400 &&
+             isValidAspectRatio(data.aspectRatio) &&
+             data.status in ['READY', 'PROCESSING', 'EXPORTED'] &&
+             (!('createdEpochMs' in data) || (data.createdEpochMs is int && data.createdEpochMs >= 0)) &&
+             (!('superAiGenerated' in data) || data.superAiGenerated is bool);
+    }
+
+    function isValidViralClip(data) {
+      return isValidStr(data.userId, 1, 128) &&
+             isValidStr(data.mediaId, 0, 128) &&
+             isValidStr(data.sourceUrl, 0, 500) &&
+             isValidStr(data.youtubeVideoId, 0, 32) &&
+             isValidStr(data.thumbnailUrl, 0, 500) &&
+             isValidStr(data.title, 1, 160) &&
+             isValidStr(data.hook, 0, 240) &&
+             data.viralScore is int && data.viralScore >= 0 && data.viralScore <= 100 &&
+             data.startSec is int && data.startSec >= 0 && data.startSec <= 86400 &&
+             data.endSec is int && data.endSec >= 0 && data.endSec <= 86400 &&
+             data.endSec >= data.startSec &&
+             data.subtitlesEnabled is bool &&
+             data.subtitleStyle in ['HORMOZI_POP', 'KARAOKE_GLOW', 'MINIMAL_PILL', 'NEON_BOX'] &&
+             data.captions is list && data.captions.size() <= 40 &&
+             isValidAspectRatio(data.aspectRatio) &&
+             data.filterPreset in ['NONE', 'OBSIDIAN', 'TUNGSTEN', 'CYBER_CYAN', 'CRISP_STUDIO', 'VINTAGE'] &&
+             data.playbackSpeed is number && data.playbackSpeed >= 0.25 && data.playbackSpeed <= 4.0 &&
+             data.zoomScale is number && data.zoomScale >= 0.5 && data.zoomScale <= 3.0 &&
+             data.brightness is number && data.brightness >= -1.0 && data.brightness <= 1.0 &&
+             data.contrast is number && data.contrast >= 0.2 && data.contrast <= 3.0 &&
+             data.saturation is number && data.saturation >= 0.0 && data.saturation <= 3.0 &&
+             data.voiceVolume is number && data.voiceVolume >= 0.0 && data.voiceVolume <= 1.5 &&
+             data.musicTrack in ['NONE', 'PHONK_DRIVE', 'LOFI_CHILL', 'HYPER_BEAT', 'CINEMATIC_PULSE'] &&
+             data.musicVolume is number && data.musicVolume >= 0.0 && data.musicVolume <= 1.5 &&
+             data.noiseReduction is bool &&
+             isValidStr(data.overlayText, 0, 120) &&
+             data.thumbnailTemplate in ['BOLD_SPLIT', 'NEON_HOOK', 'PODCAST_QUOTE', 'TECH_GLOW', 'MINIMAL_CLEAN'] &&
+             data.exportResolution in ['720p', '1080p', '4K'] &&
+             data.exportFps in [24, 30, 60] &&
+             data.exportBitrate in ['STANDARD', 'HIGH', 'ULTRA'] &&
+             data.exportFormat in ['MP4_H264', 'HEVC_H265'] &&
+             isValidPlatform(data.optimizedPlatform) &&
+             isValidStr(data.seoTitle, 0, 160) &&
+             isValidStr(data.seoDescription, 0, 1000) &&
+             data.seoTags is list && data.seoTags.size() <= 20 &&
+             (data.seoTags.size() == 0 || data.seoTags[0] is string) &&
+             isValidStr(data.exportedPath, 0, 500) &&
+             (!('createdEpochMs' in data) || (data.createdEpochMs is int && data.createdEpochMs >= 0)) &&
+             (!('superAiGenerated' in data) || data.superAiGenerated is bool);
+    }
+
+    function isValidSocialAccount(data) {
+      return isValidStr(data.userId, 1, 128) &&
+             isValidPlatform(data.platform) &&
+             isValidStr(data.handle, 1, 80) &&
+             data.connected is bool &&
+             data.autoOptimize is bool &&
+             data.followersCount is int && data.followersCount >= 0 && data.followersCount <= 1000000000 &&
+             isValidStr(data.peakTimeWindow, 0, 80);
+    }
+
+    function isValidScheduledPost(data) {
+      return isValidStr(data.userId, 1, 128) &&
+             isValidStr(data.clipId, 1, 128) &&
+             isValidStr(data.clipTitle, 1, 160) &&
+             isValidStr(data.thumbnailUrl, 0, 500) &&
+             data.platforms is list && data.platforms.size() >= 1 && data.platforms.size() <= 5 &&
+             data.platforms[0] is string &&
+             isValidStr(data.seoTitle, 1, 160) &&
+             isValidStr(data.seoDescription, 0, 1000) &&
+             data.seoTags is list && data.seoTags.size() <= 20 &&
+             (data.seoTags.size() == 0 || data.seoTags[0] is string) &&
+             data.scheduledAtEpochMs is int && data.scheduledAtEpochMs > 0 &&
+             isValidStr(data.scheduledLabel, 1, 80) &&
+             data.peakScore is int && data.peakScore >= 0 && data.peakScore <= 100 &&
+             data.status in ['SCHEDULED', 'PUBLISHED', 'DRAFT'] &&
+             isValidStr(data.optimizationSummary, 0, 300);
+    }
+
+    function isValidAnalyticsRecord(data) {
+      return isValidStr(data.userId, 1, 128) &&
+             isValidStr(data.clipId, 0, 128) &&
+             isValidStr(data.clipTitle, 1, 160) &&
+             isValidPlatform(data.platform) &&
+             isValidStr(data.dayLabel, 1, 32) &&
+             data.views is int && data.views >= 0 && data.views <= 1000000000 &&
+             data.likes is int && data.likes >= 0 && data.likes <= 1000000000 &&
+             data.comments is int && data.comments >= 0 && data.comments <= 1000000000 &&
+             data.shares is int && data.shares >= 0 && data.shares <= 1000000000 &&
+             data.avgWatchSeconds is int && data.avgWatchSeconds >= 0 && data.avgWatchSeconds <= 86400 &&
+             data.retentionPercent is int && data.retentionPercent >= 0 && data.retentionPercent <= 100;
+    }
+
+    match /users/{userId} {
+      allow get, list: if isOwner(userId);
+      allow create: if isOwner(userId) &&
+                       isValidId(userId) &&
+                       incoming().userId == request.auth.uid &&
+                       incoming().keys().hasAll([
+                         'userId', 'displayName', 'defaultPlatform', 'autoSubtitlesEnabled',
+                         'superAiActive', 'superAiNiche', 'superAiChannel', 'superAiAutoPostNow',
+                         'superAiPostingTimes', 'autoDelete24hEnabled', 'createdAt', 'updatedAt'
+                       ]) &&
+                       incoming().keys().hasOnly([
+                         'userId', 'displayName', 'defaultPlatform', 'autoSubtitlesEnabled',
+                         'superAiActive', 'superAiNiche', 'superAiChannel', 'superAiAutoPostNow',
+                         'superAiPostingTimes', 'autoDelete24hEnabled', 'createdAt', 'updatedAt'
+                       ]) &&
+                       isValidTimestamp(incoming().createdAt) &&
+                       isValidTimestamp(incoming().updatedAt) &&
+                       isValidUserProfile(incoming());
+      allow update: if isOwner(userId) &&
+                       isValidId(userId) &&
+                       isValidUserProfile(incoming()) &&
+                       incoming().userId == existing().userId &&
+                       incoming().createdAt == existing().createdAt &&
+                       isValidTimestamp(incoming().updatedAt) &&
+                       incoming().diff(existing()).affectedKeys().hasOnly([
+                         'displayName', 'defaultPlatform', 'autoSubtitlesEnabled',
+                         'superAiActive', 'superAiNiche', 'superAiChannel', 'superAiAutoPostNow',
+                         'superAiPostingTimes', 'autoDelete24hEnabled', 'updatedAt'
+                       ]);
+      allow delete: if isOwner(userId) && isValidId(userId);
+
+      match /media/{mediaId} {
+        allow list: if isOwner(userId);
+        allow get: if isOwner(userId) && isValidId(mediaId);
+        allow create: if isOwner(userId) &&
+                         isValidId(mediaId) &&
+                         incoming().userId == request.auth.uid &&
+                         incoming().keys().hasAll(['userId', 'title', 'sourceType', 'sourceUrl', 'youtubeVideoId', 'thumbnailUrl', 'durationSeconds', 'aspectRatio', 'status', 'createdEpochMs', 'superAiGenerated', 'createdAt', 'updatedAt']) &&
+                         incoming().keys().hasOnly(['userId', 'title', 'sourceType', 'sourceUrl', 'youtubeVideoId', 'thumbnailUrl', 'durationSeconds', 'aspectRatio', 'status', 'createdEpochMs', 'superAiGenerated', 'createdAt', 'updatedAt']) &&
+                         isValidTimestamp(incoming().createdAt) &&
+                         isValidTimestamp(incoming().updatedAt) &&
+                         isValidMediaItem(incoming());
+        allow update: if isOwner(userId) &&
+                         isValidId(mediaId) &&
+                         isValidMediaItem(incoming()) &&
+                         incoming().userId == existing().userId &&
+                         incoming().createdAt == existing().createdAt &&
+                         isValidTimestamp(incoming().updatedAt) &&
+                         incoming().diff(existing()).affectedKeys().hasOnly(['title', 'durationSeconds', 'aspectRatio', 'status', 'thumbnailUrl', 'updatedAt']);
+        allow delete: if isOwner(userId) && isValidId(mediaId);
+      }
+
+      match /clips/{clipId} {
+        allow list: if isOwner(userId);
+        allow get: if isOwner(userId) && isValidId(clipId);
+        allow create: if isOwner(userId) &&
+                         isValidId(clipId) &&
+                         incoming().userId == request.auth.uid &&
+                         incoming().keys().hasAll([
+                           'userId', 'mediaId', 'sourceUrl', 'youtubeVideoId', 'thumbnailUrl',
+                           'title', 'hook', 'viralScore', 'startSec', 'endSec',
+                           'subtitlesEnabled', 'subtitleStyle', 'captions', 'aspectRatio',
+                           'filterPreset', 'playbackSpeed', 'zoomScale', 'brightness', 'contrast', 'saturation',
+                           'voiceVolume', 'musicTrack', 'musicVolume', 'noiseReduction', 'overlayText',
+                           'thumbnailTemplate', 'exportResolution', 'exportFps', 'exportBitrate',
+                           'exportFormat', 'optimizedPlatform', 'seoTitle', 'seoDescription', 'seoTags',
+                           'exportedPath', 'createdEpochMs', 'superAiGenerated', 'createdAt', 'updatedAt'
+                         ]) &&
+                         incoming().keys().hasOnly([
+                           'userId', 'mediaId', 'sourceUrl', 'youtubeVideoId', 'thumbnailUrl',
+                           'title', 'hook', 'viralScore', 'startSec', 'endSec',
+                           'subtitlesEnabled', 'subtitleStyle', 'captions', 'aspectRatio',
+                           'filterPreset', 'playbackSpeed', 'zoomScale', 'brightness', 'contrast', 'saturation',
+                           'voiceVolume', 'musicTrack', 'musicVolume', 'noiseReduction', 'overlayText',
+                           'thumbnailTemplate', 'exportResolution', 'exportFps', 'exportBitrate',
+                           'exportFormat', 'optimizedPlatform', 'seoTitle', 'seoDescription', 'seoTags',
+                           'exportedPath', 'createdEpochMs', 'superAiGenerated', 'createdAt', 'updatedAt'
+                         ]) &&
+                         isValidTimestamp(incoming().createdAt) &&
+                         isValidTimestamp(incoming().updatedAt) &&
+                         isValidViralClip(incoming());
+        allow update: if isOwner(userId) &&
+                         isValidId(clipId) &&
+                         isValidViralClip(incoming()) &&
+                         incoming().userId == existing().userId &&
+                         incoming().createdAt == existing().createdAt &&
+                         isValidTimestamp(incoming().updatedAt) &&
+                         incoming().diff(existing()).affectedKeys().hasOnly([
+                           'title', 'hook', 'viralScore', 'startSec', 'endSec',
+                           'subtitlesEnabled', 'subtitleStyle', 'captions', 'aspectRatio',
+                           'filterPreset', 'playbackSpeed', 'zoomScale', 'brightness', 'contrast', 'saturation',
+                           'voiceVolume', 'musicTrack', 'musicVolume', 'noiseReduction', 'overlayText',
+                           'thumbnailTemplate', 'exportResolution', 'exportFps', 'exportBitrate',
+                           'exportFormat', 'optimizedPlatform', 'seoTitle', 'seoDescription', 'seoTags',
+                           'exportedPath', 'updatedAt'
+                         ]);
+        allow delete: if isOwner(userId) && isValidId(clipId);
+      }
+
+      match /socialAccounts/{accountId} {
+        allow list: if isOwner(userId);
+        allow get: if isOwner(userId) && isValidId(accountId);
+        allow create: if isOwner(userId) &&
+                         isValidId(accountId) &&
+                         incoming().userId == request.auth.uid &&
+                         incoming().keys().hasAll(['userId', 'platform', 'handle', 'connected', 'autoOptimize', 'followersCount', 'peakTimeWindow', 'createdAt', 'updatedAt']) &&
+                         incoming().keys().hasOnly(['userId', 'platform', 'handle', 'connected', 'autoOptimize', 'followersCount', 'peakTimeWindow', 'createdAt', 'updatedAt']) &&
+                         isValidTimestamp(incoming().createdAt) &&
+                         isValidTimestamp(incoming().updatedAt) &&
+                         isValidSocialAccount(incoming());
+        allow update: if isOwner(userId) &&
+                         isValidId(accountId) &&
+                         isValidSocialAccount(incoming()) &&
+                         incoming().userId == existing().userId &&
+                         incoming().createdAt == existing().createdAt &&
+                         isValidTimestamp(incoming().updatedAt) &&
+                         incoming().diff(existing()).affectedKeys().hasOnly(['handle', 'connected', 'autoOptimize', 'followersCount', 'peakTimeWindow', 'updatedAt']);
+        allow delete: if isOwner(userId) && isValidId(accountId);
+      }
+
+      match /scheduledPosts/{postId} {
+        allow list: if isOwner(userId);
+        allow get: if isOwner(userId) && isValidId(postId);
+        allow create: if isOwner(userId) &&
+                         isValidId(postId) &&
+                         incoming().userId == request.auth.uid &&
+                         incoming().keys().hasAll(['userId', 'clipId', 'clipTitle', 'thumbnailUrl', 'platforms', 'seoTitle', 'seoDescription', 'seoTags', 'scheduledAtEpochMs', 'scheduledLabel', 'peakScore', 'status', 'optimizationSummary', 'createdAt', 'updatedAt']) &&
+                         incoming().keys().hasOnly(['userId', 'clipId', 'clipTitle', 'thumbnailUrl', 'platforms', 'seoTitle', 'seoDescription', 'seoTags', 'scheduledAtEpochMs', 'scheduledLabel', 'peakScore', 'status', 'optimizationSummary', 'createdAt', 'updatedAt']) &&
+                         isValidTimestamp(incoming().createdAt) &&
+                         isValidTimestamp(incoming().updatedAt) &&
+                         isValidScheduledPost(incoming());
+        allow update: if isOwner(userId) &&
+                         isValidId(postId) &&
+                         isValidScheduledPost(incoming()) &&
+                         existing().status != 'PUBLISHED' &&
+                         incoming().userId == existing().userId &&
+                         incoming().createdAt == existing().createdAt &&
+                         isValidTimestamp(incoming().updatedAt) &&
+                         incoming().diff(existing()).affectedKeys().hasOnly(['platforms', 'seoTitle', 'seoDescription', 'seoTags', 'scheduledAtEpochMs', 'scheduledLabel', 'peakScore', 'status', 'optimizationSummary', 'updatedAt']);
+        allow delete: if isOwner(userId) && isValidId(postId);
+      }
+
+      match /analytics/{metricId} {
+        allow list: if isOwner(userId);
+        allow get: if isOwner(userId) && isValidId(metricId);
+        allow create: if isOwner(userId) &&
+                         isValidId(metricId) &&
+                         incoming().userId == request.auth.uid &&
+                         incoming().keys().hasAll(['userId', 'clipId', 'clipTitle', 'platform', 'dayLabel', 'views', 'likes', 'comments', 'shares', 'avgWatchSeconds', 'retentionPercent', 'createdAt', 'updatedAt']) &&
+                         incoming().keys().hasOnly(['userId', 'clipId', 'clipTitle', 'platform', 'dayLabel', 'views', 'likes', 'comments', 'shares', 'avgWatchSeconds', 'retentionPercent', 'createdAt', 'updatedAt']) &&
+                         isValidTimestamp(incoming().createdAt) &&
+                         isValidTimestamp(incoming().updatedAt) &&
+                         isValidAnalyticsRecord(incoming());
+        allow update: if isOwner(userId) &&
+                         isValidId(metricId) &&
+                         isValidAnalyticsRecord(incoming()) &&
+                         incoming().userId == existing().userId &&
+                         incoming().createdAt == existing().createdAt &&
+                         isValidTimestamp(incoming().updatedAt) &&
+                         incoming().diff(existing()).affectedKeys().hasOnly(['views', 'likes', 'comments', 'shares', 'avgWatchSeconds', 'retentionPercent', 'updatedAt']);
+        allow delete: if isOwner(userId) && isValidId(metricId);
+      }
+    }
+  }
+}

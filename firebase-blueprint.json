@@ -1,0 +1,195 @@
+{
+  "entities": {
+    "UserProfile": {
+      "title": "UserProfile",
+      "description": "Creator workspace profile and default studio preferences.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string", "description": "Firebase Auth UID of the owner." },
+        "displayName": { "type": "string", "description": "Creator display name." },
+        "defaultPlatform": {
+          "type": "string",
+          "enum": ["TIKTOK", "YOUTUBE_SHORTS", "INSTAGRAM_REELS", "X", "LINKEDIN"]
+        },
+        "autoSubtitlesEnabled": { "type": "boolean" },
+        "superAiActive": { "type": "boolean" },
+        "superAiNiche": { "type": "string" },
+        "superAiChannel": { "type": "string" },
+        "superAiAutoPostNow": { "type": "boolean" },
+        "superAiPostingTimes": { "type": "array" },
+        "autoDelete24hEnabled": { "type": "boolean" },
+        "createdAt": { "type": "string", "format": "date-time", "description": "Server timestamp." },
+        "updatedAt": { "type": "string", "format": "date-time", "description": "Server timestamp." }
+      },
+      "required": [
+        "userId", "displayName", "defaultPlatform", "autoSubtitlesEnabled",
+        "superAiActive", "superAiNiche", "superAiChannel", "superAiAutoPostNow",
+        "superAiPostingTimes", "autoDelete24hEnabled", "createdAt", "updatedAt"
+      ]
+    },
+    "MediaItemDoc": {
+      "title": "MediaItemDoc",
+      "description": "Media file or YouTube source video stored in the centralized media library.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "title": { "type": "string" },
+        "sourceType": { "type": "string", "enum": ["YOUTUBE", "UPLOADED", "CLIP"] },
+        "sourceUrl": { "type": "string" },
+        "youtubeVideoId": { "type": "string" },
+        "thumbnailUrl": { "type": "string" },
+        "durationSeconds": { "type": "integer" },
+        "aspectRatio": { "type": "string", "enum": ["9:16", "16:9", "1:1", "4:5"] },
+        "status": { "type": "string", "enum": ["READY", "PROCESSING", "EXPORTED"] },
+        "createdEpochMs": { "type": "integer" },
+        "superAiGenerated": { "type": "boolean" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "title", "sourceType", "sourceUrl", "youtubeVideoId", "thumbnailUrl", "durationSeconds", "aspectRatio", "status", "createdEpochMs", "superAiGenerated", "createdAt", "updatedAt"]
+    },
+    "ViralClipDoc": {
+      "title": "ViralClipDoc",
+      "description": "Autonomous AI-clipped highlight or edited TikTok-style clip with subtitle, filter, audio, export, thumbnail, and SEO settings.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "mediaId": { "type": "string" },
+        "sourceUrl": { "type": "string" },
+        "youtubeVideoId": { "type": "string" },
+        "thumbnailUrl": { "type": "string" },
+        "title": { "type": "string" },
+        "hook": { "type": "string" },
+        "viralScore": { "type": "integer" },
+        "startSec": { "type": "integer" },
+        "endSec": { "type": "integer" },
+        "subtitlesEnabled": { "type": "boolean" },
+        "subtitleStyle": { "type": "string", "enum": ["HORMOZI_POP", "KARAOKE_GLOW", "MINIMAL_PILL", "NEON_BOX"] },
+        "captions": { "type": "array" },
+        "aspectRatio": { "type": "string", "enum": ["9:16", "16:9", "1:1", "4:5"] },
+        "filterPreset": { "type": "string", "enum": ["NONE", "OBSIDIAN", "TUNGSTEN", "CYBER_CYAN", "CRISP_STUDIO", "VINTAGE"] },
+        "playbackSpeed": { "type": "number" },
+        "zoomScale": { "type": "number" },
+        "brightness": { "type": "number" },
+        "contrast": { "type": "number" },
+        "saturation": { "type": "number" },
+        "voiceVolume": { "type": "number" },
+        "musicTrack": { "type": "string", "enum": ["NONE", "PHONK_DRIVE", "LOFI_CHILL", "HYPER_BEAT", "CINEMATIC_PULSE"] },
+        "musicVolume": { "type": "number" },
+        "noiseReduction": { "type": "boolean" },
+        "overlayText": { "type": "string" },
+        "thumbnailTemplate": { "type": "string", "enum": ["BOLD_SPLIT", "NEON_HOOK", "PODCAST_QUOTE", "TECH_GLOW", "MINIMAL_CLEAN"] },
+        "exportResolution": { "type": "string", "enum": ["720p", "1080p", "4K"] },
+        "exportFps": { "type": "integer" },
+        "exportBitrate": { "type": "string", "enum": ["STANDARD", "HIGH", "ULTRA"] },
+        "exportFormat": { "type": "string", "enum": ["MP4_H264", "HEVC_H265"] },
+        "optimizedPlatform": { "type": "string", "enum": ["TIKTOK", "YOUTUBE_SHORTS", "INSTAGRAM_REELS", "X", "LINKEDIN"] },
+        "seoTitle": { "type": "string" },
+        "seoDescription": { "type": "string" },
+        "seoTags": { "type": "array" },
+        "exportedPath": { "type": "string" },
+        "createdEpochMs": { "type": "integer" },
+        "superAiGenerated": { "type": "boolean" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": [
+        "userId", "mediaId", "sourceUrl", "youtubeVideoId", "thumbnailUrl",
+        "title", "hook", "viralScore", "startSec", "endSec",
+        "subtitlesEnabled", "subtitleStyle", "captions", "aspectRatio",
+        "filterPreset", "playbackSpeed", "zoomScale", "brightness", "contrast", "saturation",
+        "voiceVolume", "musicTrack", "musicVolume", "noiseReduction", "overlayText",
+        "thumbnailTemplate", "exportResolution", "exportFps", "exportBitrate",
+        "exportFormat", "optimizedPlatform", "seoTitle", "seoDescription", "seoTags",
+        "exportedPath", "createdEpochMs", "superAiGenerated", "createdAt", "updatedAt"
+      ]
+    },
+    "SocialAccountDoc": {
+      "title": "SocialAccountDoc",
+      "description": "Connected social platform account configuration and optimization profile.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "platform": { "type": "string", "enum": ["TIKTOK", "YOUTUBE_SHORTS", "INSTAGRAM_REELS", "X", "LINKEDIN"] },
+        "handle": { "type": "string" },
+        "connected": { "type": "boolean" },
+        "autoOptimize": { "type": "boolean" },
+        "followersCount": { "type": "integer" },
+        "peakTimeWindow": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "platform", "handle", "connected", "autoOptimize", "followersCount", "peakTimeWindow", "createdAt", "updatedAt"]
+    },
+    "ScheduledPostDoc": {
+      "title": "ScheduledPostDoc",
+      "description": "Multi-platform scheduled or published clip post.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "clipId": { "type": "string" },
+        "clipTitle": { "type": "string" },
+        "thumbnailUrl": { "type": "string" },
+        "platforms": { "type": "array" },
+        "seoTitle": { "type": "string" },
+        "seoDescription": { "type": "string" },
+        "seoTags": { "type": "array" },
+        "scheduledAtEpochMs": { "type": "integer" },
+        "scheduledLabel": { "type": "string" },
+        "peakScore": { "type": "integer" },
+        "status": { "type": "string", "enum": ["SCHEDULED", "PUBLISHED", "DRAFT"] },
+        "optimizationSummary": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "clipId", "clipTitle", "thumbnailUrl", "platforms", "seoTitle", "seoDescription", "seoTags", "scheduledAtEpochMs", "scheduledLabel", "peakScore", "status", "optimizationSummary", "createdAt", "updatedAt"]
+    },
+    "AnalyticsRecordDoc": {
+      "title": "AnalyticsRecordDoc",
+      "description": "Cross-platform engagement performance record.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "clipId": { "type": "string" },
+        "clipTitle": { "type": "string" },
+        "platform": { "type": "string", "enum": ["TIKTOK", "YOUTUBE_SHORTS", "INSTAGRAM_REELS", "X", "LINKEDIN"] },
+        "dayLabel": { "type": "string" },
+        "views": { "type": "integer" },
+        "likes": { "type": "integer" },
+        "comments": { "type": "integer" },
+        "shares": { "type": "integer" },
+        "avgWatchSeconds": { "type": "integer" },
+        "retentionPercent": { "type": "integer" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "clipId", "clipTitle", "platform", "dayLabel", "views", "likes", "comments", "shares", "avgWatchSeconds", "retentionPercent", "createdAt", "updatedAt"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": { "$ref": "#/entities/UserProfile" },
+      "description": "User workspace profile."
+    },
+    "/users/{userId}/media/{mediaId}": {
+      "schema": { "$ref": "#/entities/MediaItemDoc" },
+      "description": "Centralized media library items."
+    },
+    "/users/{userId}/clips/{clipId}": {
+      "schema": { "$ref": "#/entities/ViralClipDoc" },
+      "description": "AI-generated and edited viral clips."
+    },
+    "/users/{userId}/socialAccounts/{accountId}": {
+      "schema": { "$ref": "#/entities/SocialAccountDoc" },
+      "description": "Connected social platform accounts."
+    },
+    "/users/{userId}/scheduledPosts/{postId}": {
+      "schema": { "$ref": "#/entities/ScheduledPostDoc" },
+      "description": "Multi-platform scheduled social posts."
+    },
+    "/users/{userId}/analytics/{metricId}": {
+      "schema": { "$ref": "#/entities/AnalyticsRecordDoc" },
+      "description": "Cross-platform clip engagement records."
+    }
+  }
+}
